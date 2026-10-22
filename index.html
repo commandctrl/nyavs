@@ -1,0 +1,183 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta http-equiv="Content-Security-Policy" content="default-src 'none'; style-src 'self'; img-src 'self' data:; base-uri 'none'; form-action 'none'" />
+  <meta name="referrer" content="strict-origin-when-cross-origin" />
+  <meta name="color-scheme" content="dark light" />
+  <meta name="description" content="NYAVS — Not Your Average Vuln Scanner. Supply-chain and CI/CD exposure assessment from day zero, before scanner definitions exist. Open-source Claude Code skills." />
+  <title>NYAVS — Not Your Average Vuln Scanner</title>
+  <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='7' fill='%2307090c'/%3E%3Cpath d='M7 23V9l9 14V9M19 9l3 7 3-7M22 16v7' fill='none' stroke='%237cf29a' stroke-width='2.4' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E" />
+  <link rel="stylesheet" href="site.css" />
+</head>
+<body>
+  <a class="skip" href="#main">Skip to content</a>
+
+  <header class="top">
+    <div class="wrap">
+      <a class="logo" href="#main">nyavs<span>_</span></a>
+      <nav aria-label="Sections">
+        <a href="#day-zero">Day zero</a>
+        <a href="#coverage">Coverage</a>
+        <a href="#verdicts">Verdicts</a>
+        <a href="#practical">Practicality</a>
+        <a href="#repo">Repository</a>
+        <a class="gh" href="https://github.com/commandctrl/nyavs">GitHub</a>
+      </nav>
+    </div>
+  </header>
+
+  <main id="main">
+    <div class="wrap">
+
+      <div class="hero">
+        <p class="eyebrow">Not Your Average Vuln Scanner</p>
+        <h1>Supply-chain exposure, from day zero.</h1>
+        <p class="lead">NYAVS is an open set of Claude Code skills that assess a newly disclosed vulnerability or supply-chain compromise across your whole build path. It starts as soon as the advisory is published, before commercial scanners ship a detection for it.</p>
+        <p class="question">&gt; Are we actually exposed &mdash; and how do we know?</p>
+        <div class="btns">
+          <a class="btn primary" href="https://github.com/commandctrl/nyavs">View on GitHub</a>
+          <a class="btn" href="#install">Install</a>
+        </div>
+      </div>
+
+      <section id="day-zero" aria-labelledby="day-zero-h">
+        <h2 id="day-zero-h">Why day zero matters</h2>
+        <p class="section-lead">A scanner can only detect what its vendor has written a definition for. NYAVS works from the advisory's own data (CVE, affected versions, IOCs) and checks your environment directly, so the gap between disclosure and detection becomes time spent investigating instead of waiting.</p>
+        <ol class="timeline">
+          <li><span class="when">Disclosure</span><span>Advisory, research write-up, or supply-chain compromise report is published.</span></li>
+          <li><span class="when">Hour 0</span><span>NYAVS ingests it: CVEs, affected versions (including appendix tables), IOCs, EPSS, KEV, and exploitation prerequisites.</span></li>
+          <li><span class="when">Same run</span><span>One parallel agent per CVE checks source, branches, lockfiles, registries, CI identities, SBOMs, attack surface, logs, and runtime execution.</span></li>
+          <li><span class="when">Same run</span><span>The report gives a verdict for every layer, a receipt for every finding, and a list of every coverage gap.</span></li>
+          <li><span class="when later">Days later</span><span>Scanner vendors ship plugins and signatures. NYAVS also reads scanner posture as one input once it exists.</span></li>
+        </ol>
+      </section>
+
+      <section id="coverage" aria-labelledby="coverage-h">
+        <h2 id="coverage-h">Where it looks</h2>
+        <p class="section-lead">Most of the depth goes into how vulnerable code enters and runs in CI/CD, the layers a host scanner never sees.</p>
+        <div class="grid">
+          <div class="card"><h3><span class="k">01</span>Source &amp; branches</h3><p>A combined search across code hosts and indexers, which disagree with each other, plus every non-default branch that CI actually builds. A patched default branch can still sit beside a vulnerable release branch.</p></div>
+          <div class="card"><h3><span class="k">02</span>Transitive dependencies</h3><p>Lockfiles are fetched through the hosting API and parsed in memory. That catches packages no manifest names. Nothing is cloned and nothing is uploaded.</p></div>
+          <div class="card"><h3><span class="k">03</span>Registry bypass</h3><p>Artifact-registry pulls are checked against CI jobs that download straight from public registries. A registry miss is never counted as clean.</p></div>
+          <div class="card"><h3><span class="k">04</span>CI identities</h3><p>Which cloud and secrets-manager roles a CI job can obtain, and whether any merge request can reach them. Variable names only, never values.</p></div>
+          <div class="card"><h3><span class="k">05</span>Runtime execution</h3><p>Process telemetry shows which project's CI job or workload actually ran the code, after first checking where the sensor is deployed.</p></div>
+          <div class="card"><h3><span class="k">06</span>Everything else</h3><p>SBOMs, the external attack surface, scanner posture, existing tickets and automation, and a log pivot that drills into raw events before any verdict.</p></div>
+        </div>
+      </section>
+
+      <section id="verdicts" aria-labelledby="verdicts-h">
+        <h2 id="verdicts-h">A null is not a clean result</h2>
+        <p class="section-lead">Registries, SBOMs, and lockfiles can all be bypassed or opted out of. Search APIs return confident zeros for capped, rate-limited, archived, unindexed, or wrongly filtered queries. So NYAVS grades every verdict by what would actually have seen the threat.</p>
+        <div class="table-wrap">
+          <table>
+            <thead><tr><th>Verdict</th><th>When</th></tr></thead>
+            <tbody>
+              <tr><td class="v bad">VULNERABLE</td><td>A vulnerable version is declared or resolved, with a receipt. That includes non-default branches and transitive dependencies.</td></tr>
+              <tr><td class="v bad">CONFIRMED_IOC_MATCH</td><td>An indicator appears verbatim in a network, authentication, or endpoint field after raw drilldown.</td></tr>
+              <tr><td class="v warn">NO_EVIDENCE_FOUND</td><td>Nothing was found, but the declared layers are bypassable and runtime coverage was partial or missing. The report says which.</td></tr>
+              <tr><td class="v warn">NO_COVERAGE</td><td>The workload runs where the sensor isn't deployed. That's a gap, not a negative.</td></tr>
+              <tr><td class="v good">NOT EXPOSED</td><td>Only when a runtime source with positive coverage would have seen the threat and didn't.</td></tr>
+            </tbody>
+          </table>
+        </div>
+        <div class="note">
+          <h3>Silent-zero discipline</h3>
+          <p>Before any zero counts, NYAVS has to show the query could have returned a hit: a positive control, pagination run to the end, caps disclosed, rate limits detected, and filter parameters verified with a nonsense value.</p>
+        </div>
+      </section>
+
+      <section id="run" aria-labelledby="run-h">
+        <h2 id="run-h">How a run looks</h2>
+<pre><code>/nyavs-orchestrator CVE-2026-12345
+
+Phase 1-2  intelligence   advisory + appendix + nested sources, EPSS, KEV, prerequisites
+Phase 3    exposure       1 agent per CVE: code-search union, branches, lockfiles,
+                          registry, CI identity  -&gt;  then SIEM: attack surface, SBOM,
+                          scanner posture, tickets, log pivot + raw drilldown, runtime
+Phase 4    prioritize     transparent rubric, EPSS reported separately
+Phase 5    handoff        STOP: analyst approves the finding package
+Phase 6    escalate       STOP: analyst picks formal / advisory / FYI
+Phase 7    report         markdown + self-contained HTML, receipts + coverage gaps</code></pre>
+        <div class="grid">
+          <div class="card"><h3><span class="k">skill</span><a href="https://github.com/commandctrl/nyavs/blob/main/skills/nyavs-orchestrator/SKILL.md">nyavs-orchestrator</a></h3><p>The workflow, the verdict rules, silent-zero discipline, and the report.</p></div>
+          <div class="card"><h3><span class="k">skill</span><a href="https://github.com/commandctrl/nyavs/blob/main/skills/nyavs-intel-ingestor/SKILL.md">nyavs-intel-ingestor</a></h3><p>Turns an advisory into fixed-schema CVE and IOC JSON, appendix tables included.</p></div>
+          <div class="card"><h3><span class="k">skill</span><a href="https://github.com/commandctrl/nyavs/blob/main/skills/nyavs-query-builder/SKILL.md">nyavs-query-builder</a></h3><p>Vendor-neutral SIEM queries with assumptions, fallbacks, and controls.</p></div>
+          <div class="card"><h3><span class="k">skill</span><a href="https://github.com/commandctrl/nyavs/blob/main/skills/nyavs-escalation/SKILL.md">nyavs-escalation</a></h3><p>Slack escalations that lead with the facts and the ask.</p></div>
+        </div>
+      </section>
+
+      <section id="practical" aria-labelledby="practical-h">
+        <h2 id="practical-h">Is it practical?</h2>
+        <div class="two">
+          <div>
+            <h3>What it is not</h3>
+            <ul class="clean">
+              <li><strong>Not a zero-day discovery tool.</strong> It doesn't find unknown vulnerabilities. It needs a published advisory, CVE, or IOCs. Its edge is speed after disclosure.</li>
+              <li><strong>Not complete coverage.</strong> No organization has full CI/CD visibility. NYAVS measures your coverage and lists every gap instead of hiding them behind a zero.</li>
+              <li><strong>Not a scanner replacement.</strong> It gives an answer before scanners can, checks layers they don't, and reads their posture once it exists.</li>
+            </ul>
+          </div>
+          <div>
+            <h3>What it costs you</h3>
+            <ul class="clean">
+              <li><strong>Access.</strong> Every platform you don't have (code host, registry, SIEM, runtime sensor) becomes a named gap, and the assessment shrinks accordingly.</li>
+              <li><strong>Setup.</strong> Queries are written in a neutral notation with placeholder store names. Plan to map them onto your SIEM before the first run.</li>
+              <li><strong>Agent budget.</strong> Parallel agents and many API calls. Expect model costs and code-search rate limits.</li>
+              <li><strong>Judgment.</strong> Two STOP gates keep a person in charge of every ticket, post, and escalation.</li>
+            </ul>
+          </div>
+        </div>
+        <div class="note">
+          <h3>Status: methodology release</h3>
+          <p>These skills were generalized from a working internal workflow, and every organization-specific detail was removed for publication. This public edition hasn't been run end to end as published. Treat it as a strong starting point to adapt, not a turnkey product.</p>
+        </div>
+      </section>
+
+      <section id="install" aria-labelledby="install-h">
+        <h2 id="install-h">Install</h2>
+<pre><code>git clone https://github.com/commandctrl/nyavs.git
+cp -r nyavs/skills/* ~/.claude/skills/
+
+# set the variables listed in the orchestrator's Configuration section, then:
+/nyavs-orchestrator CVE-2026-12345</code></pre>
+        <h3>Security model</h3>
+        <ul class="clean">
+          <li>Credentials come from environment variables only, and anything that looks like a credential is redacted before any write.</li>
+          <li>Fetched articles and PoC repos are treated as untrusted data, and that boundary is restated inside every sub-agent prompt.</li>
+          <li>Every URL other than the primary advisory passes a VirusTotal check before NYAVS opens it.</li>
+          <li>Repositories are never cloned, and internal inventory is never sent to outside services.</li>
+        </ul>
+      </section>
+
+      <section id="repo" aria-labelledby="repo-h">
+        <h2 id="repo-h">Repository</h2>
+        <p class="section-lead">Everything in the repo, one click away. Each link opens GitHub's rendered view.</p>
+        <div class="table-wrap">
+          <table>
+            <thead><tr><th>File</th><th>What it is</th></tr></thead>
+            <tbody>
+              <tr><td><a href="https://github.com/commandctrl/nyavs/blob/main/skills/nyavs-orchestrator/SKILL.md"><code>skills/nyavs-orchestrator/SKILL.md</code></a></td><td>The main workflow: phases, verdict rules, silent-zero discipline, report</td></tr>
+              <tr><td><a href="https://github.com/commandctrl/nyavs/blob/main/skills/nyavs-intel-ingestor/SKILL.md"><code>skills/nyavs-intel-ingestor/SKILL.md</code></a></td><td>Advisory to structured CVE and IOC JSON</td></tr>
+              <tr><td><a href="https://github.com/commandctrl/nyavs/blob/main/skills/nyavs-query-builder/SKILL.md"><code>skills/nyavs-query-builder/SKILL.md</code></a></td><td>Vendor-neutral SIEM query notation and templates</td></tr>
+              <tr><td><a href="https://github.com/commandctrl/nyavs/blob/main/skills/nyavs-escalation/SKILL.md"><code>skills/nyavs-escalation/SKILL.md</code></a></td><td>Escalation drafts and the posting protocol</td></tr>
+              <tr><td><a href="https://github.com/commandctrl/nyavs/blob/main/README.md"><code>README.md</code></a></td><td>Overview, install, and configuration</td></tr>
+              <tr><td><a href="https://github.com/commandctrl/nyavs/blob/main/LICENSE"><code>LICENSE</code></a></td><td>MIT License</td></tr>
+              <tr><td><a href="https://github.com/commandctrl/nyavs"><code>commandctrl/nyavs</code></a></td><td>Source, history, issues, and pull requests</td></tr>
+            </tbody>
+          </table>
+        </div>
+      </section>
+
+    </div>
+  </main>
+
+  <footer>
+    <div class="wrap">
+      <span>NYAVS &middot; MIT License</span>
+      <span><a href="https://github.com/commandctrl/nyavs">Source, issues, and pull requests on GitHub</a></span>
+    </div>
+  </footer>
+</body>
+</html>
