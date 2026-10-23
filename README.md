@@ -76,7 +76,6 @@ Read this section before you install it.
 - **It is a lot of agent work.** A multi-CVE run fans out parallel sub-agents and many API calls. Plan for the token cost and for API rate limits.
 - **Humans stay in the loop.** The skills stop before creating tickets, posting, or escalating. That is deliberate.
 - **It assists analysts and doesn't replace them.** It can't judge business context. It also can't fix gaps in your telemetry, though it will tell you exactly where they are.
-- **Status: this is a methodology release.** These skills were generalized from a working internal workflow, and every organization-specific detail has been removed. This public edition has not been run end-to-end as published. Treat it as a strong starting point to adapt, not a turnkey product.
 
 ## Install
 
